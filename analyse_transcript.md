@@ -118,7 +118,7 @@ Return your findings as a `ClientRDProfile` JSON object:
     {
       "category": "string",
       "estimatedAmount": 0,
-      "currency": "AUD",
+      "estimatedAmount": "number or omit",
       "notes": "string or omit"
     }
   ],
