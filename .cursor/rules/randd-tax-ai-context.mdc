@@ -1,0 +1,12 @@
+---
+description: R&D Tax AI — this repo = skill-definition .md files; MCP server in xero-mcp
+alwaysApply: true
+---
+
+# R&D Tax AI (r-d_ti_ai)
+
+- **This repo:** Skill-definition .md files only (inputs, outputs, behaviour for each skill). No server code.
+- **xero-mcp:** MCP server implementation, tool registration, Xero integration (BEN-10+). Run the server there.
+- **Product:** Product docs at `../../Product/docs/randd-tax-ai/`. Build order: MCP scaffold → Xero → Transcript → Vendor Research → Categorisation → Financials → Narrative → E2E.
+- **Tool contract:** Every skill tool has `name`, `description`, `inputSchema`, and output with `confidence`, `flagForReview`, `flagReason?`. See `docs/TOOL_CONTRACT.md`.
+- **Product context:** `docs/PRODUCT_CONTEXT.md`.
