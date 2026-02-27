@@ -124,7 +124,7 @@ Return your findings as a `ClientRDProfile` JSON object:
   ],
   "claimYear": "string or omit — e.g. 'FY2024'",
   "extractedAt": "ISO 8601 timestamp"
-}
+  "extractedAt": "ISO 8601 timestamp"
 ```
 
 Always wrap this in the standard tool contract envelope:
