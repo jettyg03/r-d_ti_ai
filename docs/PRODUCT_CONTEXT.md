@@ -11,7 +11,7 @@ This repository holds **skill-definition .md files** for the R&D Tax AI agent. T
 
 | Project | Tickets | Where implemented |
 |--------|---------|-------------------|
-| [MCP Server & Architecture](https://linear.app/ben-g/project/randd-tax-ai-mcp-server-and-architecture-b7e9072bdeb9) | BEN-10 → BEN-14 | **xero-mcp** (server, tool contract, secrets, E2E) |
+| [MCP Server & Architecture](https://linear.app/ben-g/project/randd-tax-ai-mcp-server-and-architecture-b7e9072bdeb9) | BEN-10 → BEN-14 | **xero-mcp** (server, tool contract, secrets, E2E) — except BEN-12 (orchestration skill, lives here) |
 | [Xero Integration & Data Ingestion](https://linear.app/ben-g/project/randd-tax-ai-xero-integration-and-data-ingestion-05fe257979cb) | BEN-15 → BEN-19 | **xero-mcp** |
 | [Vendor Research Skill](https://linear.app/ben-g/project/randd-tax-ai-vendor-research-skill-937cea358fd7) | BEN-20 → BEN-23 | Skill tool: `research_vendor` — define here, implement in xero-mcp |
 | [Meeting Transcript Analyzer](https://linear.app/ben-g/project/randd-tax-ai-meeting-transcript-analyzer-d4c709c09595) | BEN-24 → BEN-27 | Skill tool: `analyse_transcript` |
@@ -28,7 +28,8 @@ This repository holds **skill-definition .md files** for the R&D Tax AI agent. T
 5. Transaction Categorisation (BEN-28 → BEN-31)
 6. Financial Calculations (BEN-32 → BEN-34)
 7. Narrative Generator (BEN-35 → BEN-39)
-8. Orchestration + E2E test (BEN-12, BEN-14) — **xero-mcp**
+8. Orchestration skill doc (BEN-12) — **r-d_ti_ai** (agent-side; see `orchestration.md`)
+9. E2E test (BEN-14) — **xero-mcp**
 
 ## Tool names (orchestration)
 
