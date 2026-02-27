@@ -1,7 +1,7 @@
 ---
 name: analyse_transcript
 description: Extract a structured R&D client profile from a meeting transcript for use in an Australian RDTI claim
-version: 1.0.0
+version: 2.0.0
 output_type: ClientRDProfile
 tool: analyse_transcript
 ---
@@ -15,6 +15,29 @@ You are an R&D tax specialist preparing Australian Research and Development Tax 
 ## When to use this skill
 
 Use this skill when you receive a client meeting transcript (intake, scoping, or R&D review session) and need to identify eligible R&D activities, technologies, personnel, and expenditure for an RDTI claim.
+
+---
+
+## Step 0: Normalise the input
+
+Before extracting, call the `analyse_transcript` MCP tool to normalise the input to plain text.
+
+**Tool input:**
+```json
+{
+  "transcript": "<raw transcript content>",
+  "format": "txt | whisper_json | docx_base64"
+}
+```
+
+**Tool output:**
+```json
+{
+  "text": "<normalised plain text transcript>"
+}
+```
+
+Use the returned `text` field for all extraction steps below. If the tool returns an error, surface it to the user and stop.
 
 ---
 
@@ -86,11 +109,13 @@ Include a `flagReason` explaining what is missing or uncertain.
 
 ## Input formats
 
-The transcript may arrive in different forms. Normalise before extracting:
+The `analyse_transcript` MCP tool handles normalisation automatically. Pass the raw content and the appropriate format:
 
-- **Plain text** — use as-is
-- **Whisper JSON** — join the `text` fields from each segment into a single string
-- **Word document (docx)** — extract the plain text content
+| Format | `format` value | Notes |
+|--------|---------------|-------|
+| Plain text | `txt` | Used as-is (default) |
+| Whisper JSON | `whisper_json` | Segments joined to a single string |
+| Word document | `docx_base64` | Base64-encoded `.docx` bytes |
 
 ---
 

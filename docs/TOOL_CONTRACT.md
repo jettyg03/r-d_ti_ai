@@ -13,15 +13,17 @@ Skill-definition reference: all R&D Tax AI skill tools **implemented in xero-mcp
   - **flagForReview** (boolean)
   - **flagReason?** (string, optional)
 
+> **Note (BEN-40):** `analyse_transcript` is an exception — it is a pure normalisation tool and returns `{ text: string }` only. Confidence scoring and flagging are the responsibility of the calling CoWork skill.
+
 ## Tool names used in orchestration
 
-| Tool | Output type |
-|------|-------------|
-| `analyse_transcript` | ClientRDProfile |
-| `ingest_xero_data` | Transaction[] |
-| `research_vendor` | VendorProfile |
-| `categorise_transaction` | CategorisedTransaction |
-| `calculate_financials` | FinancialSummary |
-| `generate_submission` | SubmissionDocument |
+| Tool | Output type | Notes |
+|------|-------------|-------|
+| `analyse_transcript` | `{ text: string }` | Normalisation only — extraction done by CoWork skill (BEN-40) |
+| `ingest_xero_data` | Transaction[] | |
+| `research_vendor` | VendorProfile | |
+| `categorise_transaction` | CategorisedTransaction | |
+| `calculate_financials` | FinancialSummary | |
+| `generate_submission` | SubmissionDocument | |
 
 Define each skill’s behaviour and I/O in .md files in **this repo**. Implementation and registration happen in the **xero-mcp** MCP server.
