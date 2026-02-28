@@ -1,6 +1,8 @@
 # analyse_transcript — developer reference
 
-Skill definition: [`/analyse_transcript.md`](../analyse_transcript.md)
+Tool definition (normalisation-only): [`/analyse_transcript.md`](../analyse_transcript.md)
+
+CoWork skill (extraction + enrichment): [`/extract_client_rd_profile_from_transcript.md`](../extract_client_rd_profile_from_transcript.md)
 
 Implementation: [`xero-mcp/src/transcript/`](../../xero-mcp/src/transcript/)
 
