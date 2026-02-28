@@ -42,6 +42,7 @@ Reference: `docs/XERO_API_DATA_USAGE_COMPLIANCE.md`.
 
 - `analyse_transcript` → `{ text: string }` (normalisation only; profile extraction happens in the agent skill)
 - `ingest_xero_data` → Transaction[] (with attachments)
+- `extract_receipt_invoice_content` → ExtractedReceiptInvoiceContent (extract + parse receipt/invoice attachment text for categorisation)
 - `research_vendor` → VendorProfile
 - `categorise_transaction` → CategorisedTransaction
 - `calculate_financials` → FinancialSummary

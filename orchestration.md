@@ -85,11 +85,11 @@ Do not proceed until the user approves. If they correct anything, update the pro
 {
   "tenantId": "<from user>",
   "financialYear": <parsed from ClientRDProfile.claimYear — e.g. "FY2024" → 2024>,
-  "includeAttachments": false
+  "includeAttachments": true
 }
 ```
 
-Set `includeAttachments: true` only when absolutely necessary for human review or categorisation, and never surface attachment contents in checkpoints.
+`includeAttachments: true` must return **attachment metadata only** (IDs, filenames, mime types) and must **not** return raw attachment bytes. Receipt/invoice text extraction happens on-demand in Stage 4 via `extract_receipt_invoice_content` and must be processed transiently (see `docs/XERO_API_DATA_USAGE_COMPLIANCE.md`).
 
 **What to carry forward:** The full `NormalisedTransaction[]`. Extract the list of unique vendor names (`contactName` values) for Stage 3.
 
@@ -152,15 +152,37 @@ If all vendor profiles are clean (confidence ≥ 0.7, none flagged), advance aut
 
 **Goal:** Assign each transaction to an eligibility category.
 
-**How:** For each `NormalisedTransaction`, call `categorise_transaction`.
+**How:** For each `NormalisedTransaction`:
+
+1. If the transaction has any attachment metadata, call `extract_receipt_invoice_content` to populate extracted attachment text and minimal structured fields.
+2. Call `categorise_transaction`, passing the enriched transaction (including extracted attachment content).
 
 ```json
 {
-  "transaction": <NormalisedTransaction>,
+  "transaction": <NormalisedTransaction enriched with attachments[].contentText (and optional extracted fields)>,
   "clientProfile": <ClientRDProfile from Stage 1>,
   "vendorProfile": <matching VendorProfile from Stage 3, or null>
 }
 ```
+
+### Attachment extraction (required for best categorisation)
+
+Call `extract_receipt_invoice_content` when `transaction.attachments` contains one or more attachment metadata entries.
+
+```json
+{
+  "tenantId": "<from user>",
+  "transactionId": "<NormalisedTransaction.id>",
+  "attachments": <NormalisedTransaction.attachments metadata, if present>
+}
+```
+
+Merge the returned attachment entries back onto the transaction so `categorise_transaction` receives:
+
+- `attachments[].contentText` (plain extracted text, possibly truncated)
+- optional `attachments[].extractedFields` (totals, document date, line items)
+
+If extraction fails for all attachments, continue categorisation without attachment evidence and expect a higher likelihood of `review_required`.
 
 Categories:
 
