@@ -142,14 +142,13 @@ Return your findings as a `ClientRDProfile` JSON object:
   "spendingDiscussions": [
     {
       "category": "string",
-      "estimatedAmount": 0,
       "estimatedAmount": "number or omit",
       "notes": "string or omit"
     }
   ],
   "claimYear": "string or omit — e.g. 'FY2024'",
   "extractedAt": "ISO 8601 timestamp"
-  "extractedAt": "ISO 8601 timestamp"
+}
 ```
 
 Always wrap this in the standard tool contract envelope:

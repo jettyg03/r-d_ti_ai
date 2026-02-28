@@ -35,6 +35,18 @@ You maintain a running **pipeline context** in your working memory throughout: t
 
 ---
 
+## Xero API data handling (compliance — effective 2 March 2026)
+
+Xero API data must be used **only** for classification/categorisation, calculation, and claim/report generation for the specific client task. It must **not** be used to train, fine-tune, evaluate, or otherwise improve any AI/ML model.
+
+Practical requirements while orchestrating:
+
+- Do **not** include raw Xero payload dumps (full transactions, full descriptions at scale, or attachments) in user-facing messages.
+- For checkpoints, prefer **aggregates and minimal excerpts** (IDs, dates, amounts, account names) needed for review.
+- Never ask for, create, or retain any “eval/training dataset” derived from Xero data.
+
+---
+
 ## Stage 1 — Client Intake
 
 **Goal:** Extract a structured `ClientRDProfile` from the meeting transcript.
@@ -71,9 +83,11 @@ Do not proceed until the user approves. If they correct anything, update the pro
 {
   "tenantId": "<from user>",
   "financialYear": <parsed from ClientRDProfile.claimYear — e.g. "FY2024" → 2024>,
-  "includeAttachments": true
+  "includeAttachments": false
 }
 ```
+
+Set `includeAttachments: true` only when absolutely necessary for human review or categorisation, and never surface attachment contents in checkpoints.
 
 **What to carry forward:** The full `NormalisedTransaction[]`. Extract the list of unique vendor names (`contactName` values) for Stage 3.
 
@@ -83,6 +97,7 @@ Present to the user:
 - Total transaction count and date range covered
 - Number of flagged transactions and what's wrong with them (zero amounts, missing descriptions, foreign currency)
 - A short summary of top accounts by spend
+- If you must show examples, include only the **minimum fields** required for review (e.g. internal transaction ID, date, amount, account). Do not include attachment contents.
 
 Ask: *"Does this look like the full picture for [financial year]? Check any flagged items."*
 
