@@ -2,6 +2,12 @@
 
 This repository holds **skill-definition .md files** for the R&D Tax AI agent. The **MCP server and tool implementation** live in the **xero-mcp** repo.
 
+## Compliance note (Xero API terms — effective 2 March 2026)
+
+Xero API data must **not** be used to train, fine-tune, evaluate, or otherwise improve AI/ML models. Treat Xero data as **ephemeral, task-scoped input** used only for classification, calculation, and claim/report generation.
+
+Reference: `docs/XERO_API_DATA_USAGE_COMPLIANCE.md`.
+
 ## Product documentation
 
 - **Product docs (external):** [Product/docs/randd-tax-ai](../../Product/docs/randd-tax-ai) — overview, architecture, components, user flows.
