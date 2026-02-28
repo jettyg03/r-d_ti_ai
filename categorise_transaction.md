@@ -276,4 +276,3 @@ Return a single `CategorisedTransaction` object wrapped in the standard tool out
 ## Data handling reminder (Xero API compliance)
 
 Do not log, store, or output raw Xero payloads or full attachment contents. Use attachment text only to extract the minimum facts required to justify the categorisation (see `docs/XERO_API_DATA_USAGE_COMPLIANCE.md`).
-
