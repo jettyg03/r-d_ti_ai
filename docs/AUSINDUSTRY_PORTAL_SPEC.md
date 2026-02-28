@@ -16,6 +16,7 @@
 | **Definitive guidance** | [Registration – application form questions (PDF)](https://business.gov.au/-/media/grants-and-programs/rdti/rdti-registration-application-form-questions-pdf.pdf) — complete list of questions and character limits. [Registration – application notes (PDF)](https://business.gov.au/-/media/grants-and-programs/rdti/rdti-registration-application-notes-pdf.pdf) for context. |
 
 Portal behaviour:
+
 - **Character limits** are shown at the bottom right of text fields; limits include spaces and line breaks. Some fields have minimum character counts (see official PDF).
 - **Mandatory sections** must be completed before other sections unlock: application inclusion pages, contact details, company details, registration type.
 - **Dynamic questions** — some questions appear only based on previous answers (e.g. overseas, connected entities).

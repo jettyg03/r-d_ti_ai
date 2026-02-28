@@ -18,4 +18,3 @@ When implementing tools in `xero-mcp`, ensure:
 - No eval/training datasets or embeddings are built from Xero-derived prompts/outputs.
 
 Policy reference: `docs/XERO_API_DATA_USAGE_COMPLIANCE.md`.
-

@@ -35,6 +35,7 @@ Flag a vendor for research (`needs_research`) when **any** of the following cond
 | 4 | **Name does not obviously map to a known category** | The payee name gives no clear signal about the type of goods or services supplied (e.g. "Henderson Consulting", "Sigma Technologies Pty Ltd", "Blue River Holdings"). |
 
 **Skip** the vendor (no research needed) when **either** of the following is true:
+
 - A cached `VendorProfile` already exists for the normalised vendor name — return it directly (see Step 0).
 - The payee name unambiguously identifies a clearly non-R&D supplier — e.g. a utility provider, major bank, or obvious retail/admin supplier (e.g. "AGL Energy", "Commonwealth Bank", "Officeworks").
 
@@ -57,6 +58,7 @@ Flag a vendor for research (`needs_research`) when **any** of the following cond
 ## Step 0: Check cache
 
 Normalise the vendor name before any cache lookup:
+
 1. Trim whitespace.
 2. Convert to lowercase.
 3. Remove legal suffixes: `pty ltd`, `pty. ltd.`, `ltd`, `inc`, `llc`, `co.`, `p/l`.
@@ -71,6 +73,7 @@ If a cached `VendorProfile` exists for the normalised name, return it wrapped in
 ## Step 1: Apply ambiguity detection
 
 Run the 4-criteria check against:
+
 - The normalised payee name
 - The Xero transaction description/narration
 - The client's prior categorisation history
@@ -90,6 +93,7 @@ Determine the decision outcome using the decision table above.
 Call the web search API (configured in BEN-13) using the vendor name and any optional inputs (`abn`, `website`). If an ABN is provided, prefer ABN Lookup (abr.business.gov.au) first, then supplement with a general web search. Return the raw results for use in Step 3.
 
 Suggested search queries:
+
 - `"[vendorName] Australia"` — general company lookup
 - `"[vendorName] ABN [abn]"` — if ABN is available
 - `"[vendorName] products services R&D"`
@@ -125,6 +129,7 @@ Using the search results from Step 2, populate all fields in the `VendorProfile`
 | No useful search results returned | 0.0 – 0.29 |
 
 Set `flagForReview: true` if **any** of the following are true:
+
 - Confidence < 0.5
 - The vendor's identity could not be confirmed (e.g. common name with multiple matching companies)
 - R&D relevance is contradictory (e.g. company is both a software vendor and a facilities manager)
@@ -179,6 +184,7 @@ For `skip` decisions, return:
 Use this as a quick reference when assessing `rdRelevance` in Step 3:
 
 **Typically eligible** (may constitute R&D expenditure):
+
 - Contract R&D service providers and scientific consultancies
 - Specialist engineering or software development firms engaged in experimental work
 - CROs (contract research organisations), universities, research institutes
@@ -187,6 +193,7 @@ Use this as a quick reference when assessing `rdRelevance` in Step 3:
 - Specialist equipment suppliers
 
 **Typically not eligible** (routine or excluded expenditure):
+
 - General professional services (legal, accounting, HR, recruitment)
 - Office utilities, rent, telecommunications
 - Standard SaaS subscriptions (project management, communication tools)
