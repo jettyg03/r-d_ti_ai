@@ -112,12 +112,23 @@ Do not proceed until approved. If the date range is wrong or transactions are mi
 
 **Goal:** Research each unique vendor to assess R&D relevance.
 
-**How:** For each unique `contactName` in the transactions, call `research_vendor`. Run all vendor lookups concurrently where possible.
+**How:** For each unique vendor in the transactions, call `research_vendor`. Run all vendor lookups concurrently where possible.
+
+To avoid duplicate lookups within a single run, dedupe vendors using the same normalisation rules as `research_vendor` Step 0:
+
+1. Trim whitespace
+2. Lowercase
+3. Remove legal suffixes (`pty ltd`, `ltd`, etc.)
+4. Collapse whitespace
+
+Use the **normalised vendor name** as the key for your Stage 3 `vendorProfiles` map. Keep a secondary mapping from raw `contactName` → normalised key if you need to join back to raw transaction values.
 
 ```json
 {
   "vendorName": "<contactName>",
-  "industry": "<ClientRDProfile.industry>"
+  "industry": "<ClientRDProfile.industry>",
+  "abn": "<optional — digits only; public identifier>",
+  "website": "<optional — official website URL; public identifier>"
 }
 ```
 
