@@ -202,8 +202,9 @@ For each flagged transaction, present (and store) a `HumanReviewQueueItem` with 
     "currency": "AUD",
     "contactName": "string",
     "description": "string",
-    "accountName": "string or omit"
-  },
+    "accountName": "string or omit",
+    "attachmentFileNames": ["string"]
+  }
   "aiAssessment": {
     "proposedCategory": "eligible_rd | supporting_rd | non_eligible | review_required",
     "linkedActivities": ["string"],
