@@ -50,7 +50,7 @@ The tool must normalise to a single plain text output with these invariants:
 
 - **Encoding**: output is valid UTF-8 text (no binary/control characters)
 - **Newlines**: use `\n` line endings (convert CRLF/CR to LF)
-- **Whitespace**: trim leading/trailing whitespace; collapse runs of spaces/tabs; collapse \(>2\) blank lines to at most 2
+- **Whitespace**: trim leading/trailing whitespace; collapse runs of spaces/tabs; collapse (>2) blank lines to at most 2
 - **Ordering**: preserve the original utterance order
 - **Speaker labels**: preserve explicit speaker labels when present (e.g. `Alice:`), if `options.preserveSpeakerLabels` is true
 - **Timestamps**: remove timestamp/index scaffolding (SRT/VTT/typical transcription timecodes) when `options.removeTimestamps` is true, while preserving the spoken text
