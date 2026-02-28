@@ -114,7 +114,7 @@ This tool must be registered in the MCP server (implemented in **xero-mcp**) usi
               "stage": { "type": "string", "enum": ["research", "experimental_development", "testing", "production"] },
               "type": { "type": "string", "enum": ["core", "supporting"] }
             },
-            "additionalProperties": true
+            "additionalProperties": false
           }
         },
         "technologies": { "type": "array", "items": { "type": "string" } },
