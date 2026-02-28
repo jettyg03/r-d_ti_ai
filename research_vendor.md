@@ -1,7 +1,7 @@
 ---
 name: research_vendor
 description: Determine whether a vendor requires active research and, if so, build a structured VendorProfile describing their business and R&D relevance for an Australian RDTI claim
-version: 1.0.0
+version: 1.1.0
 output_type: VendorProfile
 tool: research_vendor
 ---
@@ -35,6 +35,7 @@ Flag a vendor for research (`needs_research`) when **any** of the following cond
 | 4 | **Name does not obviously map to a known category** | The payee name gives no clear signal about the type of goods or services supplied (e.g. "Henderson Consulting", "Sigma Technologies Pty Ltd", "Blue River Holdings"). |
 
 **Skip** the vendor (no research needed) when **either** of the following is true:
+
 - A cached `VendorProfile` already exists for the normalised vendor name — return it directly (see Step 0).
 - The payee name unambiguously identifies a clearly non-R&D supplier — e.g. a utility provider, major bank, or obvious retail/admin supplier (e.g. "AGL Energy", "Commonwealth Bank", "Officeworks").
 
@@ -57,6 +58,7 @@ Flag a vendor for research (`needs_research`) when **any** of the following cond
 ## Step 0: Check cache
 
 Normalise the vendor name before any cache lookup:
+
 1. Trim whitespace.
 2. Convert to lowercase.
 3. Remove legal suffixes: `pty ltd`, `pty. ltd.`, `ltd`, `inc`, `llc`, `co.`, `p/l`.
@@ -71,6 +73,7 @@ If a cached `VendorProfile` exists for the normalised name, return it wrapped in
 ## Step 1: Apply ambiguity detection
 
 Run the 4-criteria check against:
+
 - The normalised payee name
 - The Xero transaction description/narration
 - The client's prior categorisation history
@@ -85,11 +88,59 @@ Determine the decision outcome using the decision table above.
 
 ## Step 2: Web search lookup _(BEN-21 — placeholder)_
 
-> **Note:** This step will be fully implemented in BEN-21.
+Call the web search integration (configured in BEN-13) to identify what the vendor does and to gather enough evidence to classify their industry and R&D relevance.
 
-Call the web search API (configured in BEN-13) using the vendor name and any optional inputs (`abn`, `website`). If an ABN is provided, prefer ABN Lookup (abr.business.gov.au) first, then supplement with a general web search. Return the raw results for use in Step 3.
+**Data minimisation (required):**
+
+- Only use **public identifiers** in queries: `vendorName` (normalised), optional `abn`, optional `website`.
+- Do **not** include Xero transaction narration, invoice references, amounts, addresses, or any client-specific information in web queries.
+
+### 2a. Identity confirmation (Australia-first)
+
+1. If `abn` is provided, query **ABN Lookup** (`abr.business.gov.au`) first to confirm:
+   - Legal name
+   - Entity type and status
+   - Registered state (if shown)
+   - Any industry/description hints (if shown)
+2. If `website` is provided, treat it as a strong hint but still confirm the vendor identity (common-name collisions are frequent).
+3. If neither `abn` nor `website` is provided, search to find an official website and/or an authoritative registry/directory entry.
+
+### 2b. Web search queries (use 3–6, stop early if confident)
+
+Run a general web search with a small set of targeted queries, prioritising Australia-specific results:
+
+- `"[vendorName] Australia"`.
+- `"[vendorName] Pty Ltd"`.
+- `"[vendorName] ABN"` (or `"[vendorName] ABN [abn]"` when `abn` is known).
+- `"[vendorName] products services"`.
+- `site:linkedin.com "[vendorName]"` (for business description corroboration).
+- `site:abr.business.gov.au "[abn]"` (when `abn` is known).
+
+### 2c. Source ranking and collection
+
+Prefer sources in roughly this order (highest → lowest reliability):
+
+1. **Official vendor website** (About / Products / Services pages).
+2. **ABN Lookup** record (when ABN known).
+3. Government / regulator / standards bodies (where relevant).
+4. Reputable business directories with clear attribution (e.g. LinkedIn company page).
+5. Aggregators with low verification (avoid relying on these alone).
+
+Collect up to ~8 URLs, deduplicated by domain. Save the ordered list as `sources`. If multiple distinct companies match the name, keep sources for the top 2–3 candidates and treat this as an identity ambiguity for Step 4.
+
+### 2d. Extract structured signals (for Step 3)
+
+From the best available sources, extract:
+
+- **Company description**: 1–2 factual sentences (what they do, for whom).
+- **Products/services**: 3–8 specific offerings (avoid generic "consulting" unless that is genuinely all that’s stated).
+- **Industry signals**: keywords/phrases indicating sector (e.g. "CRO", "precision machining", "embedded systems", "lab consumables").
+- **R&D association signals** (if present): explicit mentions of engineering, prototyping, experimentation, laboratory work, scientific services, specialised manufacturing, software development, or research services.
+
+Return these extracted signals to Step 3 (conceptually; the tool implementation should use them to populate the `VendorProfile`).
 
 Suggested search queries:
+
 - `"[vendorName] Australia"` — general company lookup
 - `"[vendorName] ABN [abn]"` — if ABN is available
 - `"[vendorName] products services R&D"`
@@ -103,11 +154,15 @@ Using the search results from Step 2, populate all fields in the `VendorProfile`
 | Field | How to populate |
 |-------|----------------|
 | `vendorName` | Use the normalised vendor name from Step 0. |
+| `legalName` | If confidently identified (ABN Lookup or official website), record the legal entity name; otherwise omit. |
+| `abn` | If provided or found reliably (ABN Lookup / official website), include; otherwise omit. |
+| `website` | Official website URL if identified; otherwise omit. |
 | `description` | 1–2 sentences describing what the company does. Be factual — use what the search results say. |
 | `industry` | Primary industry, e.g. "Software & Technology", "Advanced Manufacturing", "Life Sciences". |
+| `industryClassification` | If possible, map the vendor to an industry classification scheme. Prefer **ANZSIC 2006**: provide `scheme`, `code`, and `label`. If you cannot map confidently, set to `null` and explain uncertainty in `rdRelevance` (and potentially flag in Step 4). |
 | `productsServices` | List of key products or services. Be specific — avoid generic labels like "consulting". |
+| `isRdEligible` | `true` when the vendor's offerings are plausibly directly attributable to supporting/core R&D activities (e.g. engineering prototyping, CRO services, specialist materials for experiments, R&D-focused software development). Otherwise `false`. If uncertain, set `false`, explain in `rdRelevance`, and likely flag for review. |
 | `rdRelevance` | Plain-English assessment of whether their offerings could constitute eligible R&D expenditure in the context of the client's RDTI claim. Reference `ClientRDProfile.industry` if available. |
-| `confidence` | 0–1 score based on search result quality (see confidence scoring below). |
 | `sources` | All URLs consulted, in the order used. |
 
 ---
@@ -125,6 +180,7 @@ Using the search results from Step 2, populate all fields in the `VendorProfile`
 | No useful search results returned | 0.0 – 0.29 |
 
 Set `flagForReview: true` if **any** of the following are true:
+
 - Confidence < 0.5
 - The vendor's identity could not be confirmed (e.g. common name with multiple matching companies)
 - R&D relevance is contradictory (e.g. company is both a software vendor and a facilities manager)
@@ -141,11 +197,19 @@ Return the result as a `VendorProfile` JSON object:
 ```json
 {
   "vendorName": "string — normalised",
+  "legalName": "string or omit",
+  "abn": "string or omit",
+  "website": "https://... or omit",
   "description": "string",
   "industry": "string",
+  "industryClassification": {
+    "scheme": "anzsic_2006",
+    "code": "string",
+    "label": "string"
+  },
   "productsServices": ["string"],
+  "isRdEligible": true,
   "rdRelevance": "string",
-  "confidence": 0.0,
   "sources": ["https://..."]
 }
 ```
@@ -179,6 +243,7 @@ For `skip` decisions, return:
 Use this as a quick reference when assessing `rdRelevance` in Step 3:
 
 **Typically eligible** (may constitute R&D expenditure):
+
 - Contract R&D service providers and scientific consultancies
 - Specialist engineering or software development firms engaged in experimental work
 - CROs (contract research organisations), universities, research institutes
@@ -187,6 +252,7 @@ Use this as a quick reference when assessing `rdRelevance` in Step 3:
 - Specialist equipment suppliers
 
 **Typically not eligible** (routine or excluded expenditure):
+
 - General professional services (legal, accounting, HR, recruitment)
 - Office utilities, rent, telecommunications
 - Standard SaaS subscriptions (project management, communication tools)
