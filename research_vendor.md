@@ -80,7 +80,7 @@ The cache must store **only public vendor research outputs** and metadata derive
 Vendors can share names, and payee strings can be ambiguous. Therefore the cache must support multiple identity keys, in this priority order:
 
 1. **ABN key (preferred when available)**: `abn:<abnDigitsOnly>`
-2. **Website domain key (when available)**: `domain:<registrableDomain>` (e.g. `domain:example.com`)
+2. **Website domain key (when available)**: `domain:<registrableDomain>` (e.g. `domain:example.com`, `domain:example.co.uk`)
 3. **Name key (fallback)**: `name:<normalisedVendorName>` (using the normalisation steps above)
 
 The tool should store the `VendorProfile.vendorName` as the **normalised** name and may store additional `aliases` internally (e.g. raw `vendorName` variants), but aliases must not include transaction data.
