@@ -14,6 +14,7 @@ You are an R&D tax specialist preparing Australian Research and Development Tax 
 ## When to use this skill
 
 Use this skill when the user wants to prepare a full RDTI claim for a client. You need:
+
 - A client meeting transcript (intake or scoping session)
 - Xero credentials for the client (`tenantId`)
 - The financial year to claim (e.g. FY2024)
@@ -24,7 +25,7 @@ Use this skill when the user wants to prepare a full RDTI claim for a client. Yo
 
 Six stages, each followed by a human checkpoint:
 
-```
+```text
 Stage 1 → [CP1] → Stage 2 → [CP2] → Stage 3 → [CP3?] → Stage 4 → [CP4?] → Stage 5 → [CP5] → Stage 6 → [CP6]
 Intake             Ingestion           Vendors              Categorise           Calculate           Submit
 ```
@@ -62,6 +63,7 @@ Practical requirements while orchestrating:
 **Checkpoint CP1 (always):**
 
 Present to the user:
+
 - The extracted R&D activities (title + technical challenge for each)
 - Any activities flagged as potentially not eligible
 - The identified financial year
@@ -94,6 +96,7 @@ Set `includeAttachments: true` only when absolutely necessary for human review o
 **Checkpoint CP2 (always):**
 
 Present to the user:
+
 - Total transaction count and date range covered
 - Number of flagged transactions and what's wrong with them (zero amounts, missing descriptions, foreign currency)
 - A short summary of top accounts by spend
@@ -125,6 +128,7 @@ If a vendor lookup fails, create a stub `VendorProfile` with `isRdEligible: fals
 **Checkpoint CP3 (conditional):**
 
 Only pause if **any** of the following are true:
+
 - Any `VendorProfile.flagForReview === true`
 - Any `VendorProfile.confidence < 0.7`
 
@@ -162,11 +166,13 @@ Categories:
 **Checkpoint CP4 (conditional):**
 
 Only pause if **any** of the following are true:
+
 - Any transaction has `category === "review_required"`
 - Any transaction has `flagForReview === true`
 - Batch confidence < 0.7
 
 If pausing, present:
+
 - A summary table: count per category with total AUD spend
 - All `review_required` transactions with their rationale
 - Any other flagged items
@@ -191,6 +197,7 @@ If all transactions are cleanly categorised (no `review_required`, no flags, con
 ```
 
 The tool returns a `FinancialSummary` with:
+
 - `totalRdExpenditure` — sum of `eligible_rd` + `supporting_rd` amounts
 - `breakdown` — per-category totals
 - `estimatedRdtiOffset` — at the applicable rate (43.5% for companies with aggregated turnover < $20M; 38.5% otherwise)
@@ -200,6 +207,7 @@ The tool returns a `FinancialSummary` with:
 **Checkpoint CP5 (always):**
 
 Present to the user:
+
 - The eligible/supporting/non-eligible breakdown with AUD totals
 - The estimated RDTI offset
 - The rate applied and why
@@ -238,7 +246,7 @@ Do not file or transmit anything. Your job ends at approval — delivery to the 
 
 Track the following state throughout:
 
-```
+```text
 clientProfile          ← Stage 1
 transactions           ← Stage 2
 vendorProfiles         ← Stage 3  (map: vendorName → VendorProfile)

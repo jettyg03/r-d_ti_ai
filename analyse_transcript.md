@@ -23,6 +23,7 @@ Use this skill when you receive a client meeting transcript (intake, scoping, or
 Before extracting, call the `analyse_transcript` MCP tool to normalise the input to plain text.
 
 **Tool input:**
+
 ```json
 {
   "transcript": "<raw transcript content>",
@@ -31,6 +32,7 @@ Before extracting, call the `analyse_transcript` MCP tool to normalise the input
 ```
 
 **Tool output:**
+
 ```json
 {
   "text": "<normalised plain text transcript>"
@@ -46,6 +48,7 @@ Use the returned `text` field for all extraction steps below. If the tool return
 ### 1. Identify the client
 
 Look for:
+
 - Company or business name
 - Industry or sector (e.g. software, biotech, advanced manufacturing, agtech)
 - Sub-industry or specialisation (e.g. "genomics" within biotech, "embedded systems" within software) — record if mentioned
@@ -81,6 +84,7 @@ Note anyone mentioned by name or role who is involved in R&D work — lead engin
 ### 5. Identify spending discussions
 
 Extract any mention of:
+
 - Salary or headcount costs for R&D staff
 - Contractor or CRO fees
 - Equipment, compute, or lab consumables
@@ -100,6 +104,7 @@ After extraction, assess the completeness of your output:
 | Three or more missing | confidence: 0.3, flag for review |
 
 Always set `flagForReview: true` if:
+
 - No clear technical uncertainty was articulated for any activity
 - The work sounds like routine software development or IT support
 - The financial year is unclear and the claim period cannot be determined
@@ -118,11 +123,13 @@ After completing extraction (Steps 1–6), use web search to enrich two fields i
 #### 7a. Enrich `industryContext`
 
 Search for R&D norms and patterns specific to the client's industry (and sub-industry where identified). Aim to answer:
+
 - What kinds of R&D activities are typical in this sector?
 - What technical uncertainties do companies in this space commonly pursue?
 - What does "experimental development" look like in this industry?
 
 **Suggested search queries** (adapt using the identified `industry` / `subIndustry`):
+
 - `"R&D Tax Incentive [industry] examples Australia"`
 - `"[industry] typical R&D activities RDTI"`
 - `"AusIndustry R&D [sector] eligible activities"`
@@ -132,11 +139,13 @@ Summarise findings in 2–4 sentences. If no useful results are found, set `indu
 #### 7b. Enrich `atoGuidanceNotes`
 
 Search for ATO rulings, ATO IDs, or AusIndustry guidance documents that apply specifically to R&D in the client's sector. TR 2019/1 applies to all claims — only cite it here if it contains sector-specific passages. Look for:
+
 - ATO ID rulings mentioning the client's industry or activity type
 - AusIndustry sector-specific guidance sheets
 - Any public ATO statements about eligibility in this field
 
 **Suggested search queries**:
+
 - `"ATO R&D Tax Incentive [industry] ruling"`
 - `"ATO ID [industry] R&D eligible"`
 - `"AusIndustry RDTI [sector] guidance"`
@@ -149,6 +158,7 @@ Summarise any relevant guidance in 2–4 sentences with ruling/document referenc
 If a `clientName` is known and the company appears publicly available (e.g. has a website, ASX listing, or news coverage), you may optionally search for publicly known information about their R&D activities. This can corroborate or add context to what was discussed in the transcript.
 
 > **Enrichment principles:**
+>
 > - **Do not overwrite transcript-derived facts.** If the transcript states the client works in "genomic sequencing", do not replace this with a broader category found via web search.
 > - Enrichment supplements extraction — it adds context the transcript didn't mention.
 > - If the client is clearly identifiable but no useful public information is found, note this briefly; do not fabricate.
