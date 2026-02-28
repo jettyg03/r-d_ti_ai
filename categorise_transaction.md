@@ -138,7 +138,7 @@ This tool must be registered in the MCP server (implemented in **xero-mcp**) usi
         "rdRelevance": { "type": "string" },
         "sources": { "type": "array", "items": { "type": "string" } }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     }
   },
   "additionalProperties": false
