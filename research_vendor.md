@@ -47,6 +47,7 @@ Flag a vendor for research (`needs_research`) when **any** of the following cond
 | Yes | — | — | — | `use_cache` — return cached `VendorProfile`. Stop. |
 | No | No | Yes (clearly non-R&D) | — | `skip` — vendor is obviously ineligible; no profile needed. |
 | No | No | Yes (non-ambiguous, R&D-possible) | Yes | `use_cache` — reuse prior categorisation context; no new web search. |
+| No | No | Yes (non-ambiguous, R&D-possible) | No | `needs_research` — name is R&D-possible but no history; research to establish profile. |
 | No | Yes | Any | Any | `needs_research` — proceed to Steps 1–4. |
 | No | No | No | No | `needs_research` — name is ambiguous; proceed to Steps 1–4. |
 | No | No | No | Yes | `needs_research` — prior categorisation exists but name is still ambiguous; research to confirm. |
