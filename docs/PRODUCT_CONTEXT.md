@@ -40,11 +40,11 @@ Reference: `docs/XERO_API_DATA_USAGE_COMPLIANCE.md`.
 
 ## Tool names (orchestration)
 
-- `analyse_transcript` → ClientRDProfile
+- `analyse_transcript` → `{ text: string }` (normalisation only; profile extraction happens in the agent skill)
 - `ingest_xero_data` → Transaction[] (with attachments)
 - `research_vendor` → VendorProfile
 - `categorise_transaction` → CategorisedTransaction
 - `calculate_financials` → FinancialSummary
 - `generate_submission` → SubmissionDocument
 
-All tools must expose: `name`, `description`, `inputSchema`, and output including `confidence`, `flagForReview`, optional `flagReason`. Implement in **xero-mcp**; define behaviour and contracts in this repo (.md files).
+All tools must expose: `name`, `description`, `inputSchema`, and output including `confidence`, `flagForReview`, optional `flagReason` **except** `analyse_transcript`, which returns `{ text: string }` only (see `docs/TOOL_CONTRACT.md`). Implement in **xero-mcp**; define behaviour and contracts in this repo (.md files).

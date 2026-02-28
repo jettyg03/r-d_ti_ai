@@ -68,4 +68,3 @@ This repository (`r-d_ti_ai`) contains **skill-definition** documents only. The 
 ## Documentation requirement
 
 - This compliance note must also appear in the **xero-mcp** README/onboarding docs and any internal architecture docs describing the pipeline.
-
