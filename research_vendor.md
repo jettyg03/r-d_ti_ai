@@ -66,7 +66,64 @@ Normalise the vendor name before any cache lookup:
 
 **Example:** `"Sigma Technologies Pty Ltd"` → `"sigma technologies"`
 
-If a cached `VendorProfile` exists for the normalised name, return it wrapped in the standard output envelope. Do not proceed further.
+### Vendor research cache (BEN-22 — required)
+
+The `research_vendor` tool must implement a caching layer so that once a vendor has been researched, the result is reused for future transactions:
+
+- **Within a single client run**: avoid duplicate lookups across multiple transactions and minor name variations.
+- **Across multiple clients**: avoid repeating web searches for the same vendor across different client datasets.
+
+The cache must store **only public vendor research outputs** and metadata derived from public sources. It must **not** store any raw Xero API payloads, transaction descriptions, invoice references, amounts, or any client-specific context (see `docs/XERO_API_DATA_USAGE_COMPLIANCE.md`).
+
+#### Cache identity keys (collision-resistant)
+
+Vendors can share names, and payee strings can be ambiguous. Therefore the cache must support multiple identity keys, in this priority order:
+
+1. **ABN key (preferred when available)**: `abn:<abnDigitsOnly>`
+2. **Website domain key (when available)**: `domain:<registrableDomain>` (e.g. `domain:example.com`)
+3. **Name key (fallback)**: `name:<normalisedVendorName>` (using the normalisation steps above)
+
+The tool should store the `VendorProfile.vendorName` as the **normalised** name and may store additional `aliases` internally (e.g. raw `vendorName` variants), but aliases must not include transaction data.
+
+#### Cache lookup rules
+
+When handling an input vendor:
+
+- If an **ABN** is provided, attempt lookup by `abn:<...>` first. A name-only hit must **not** override an ABN-provided request.
+- Else if a **website** is provided (or discovered reliably), attempt lookup by `domain:<...>` first.
+- Always attempt lookup by `name:<normalisedVendorName>` as a fallback.
+
+Treat a cached entry as a **valid hit** only when all are true:
+
+- The entry is **not stale** (per staleness rules below), and
+- The entry does **not** have an unresolved identity ambiguity (e.g. multiple plausible companies for the same name), and
+- The cached `VendorProfile` is not flagged for review with identity-related reasons.
+
+If a cached entry exists but is **stale or ambiguous**, treat it as a **soft hit**: use it to seed/accelerate Step 2 research, but still refresh the profile before returning a final result.
+
+#### Staleness / refresh rules
+
+Vendor research rarely changes quickly, but low-quality sources and ambiguous identities do. Use these refresh thresholds:
+
+- **High-quality identity** (ABN confirmed and/or official website found, confidence ≥ 0.8, not flagged): refresh after **180 days**.
+- **Medium-quality identity** (website OR ABN found, confidence 0.6–0.79, not flagged): refresh after **90 days**.
+- **Low-quality / ambiguous** (confidence < 0.6 or flagged): refresh after **30 days** (or always refresh when the identity is ambiguous).
+
+When refreshing, update the cached record in place (same key) and update its `lastVerifiedAt` metadata.
+
+#### Negative caching (skip decisions)
+
+When the vendor is **unambiguously** a clearly non-R&D supplier (e.g. major bank, utility provider, office supplies retailer) and the tool returns `decision: "skip"` with confidence ≥ 0.9, store a negative cache entry keyed by `name:<normalisedVendorName>` with a **365 day** TTL. This avoids repeated checks for obvious non-eligible payees.
+
+Do not negative-cache cases where the name is ambiguous or could plausibly refer to an R&D-relevant supplier.
+
+#### Concurrency / deduplication (same run)
+
+If the tool is called concurrently for the same cache identity key(s), it must deduplicate in-flight work so that only one web research operation executes and other calls await/reuse the same result.
+
+### Step 0 outcome
+
+If a **fresh** cached `VendorProfile` exists (per lookup + staleness rules), return it wrapped in the standard output envelope with `decision: "use_cache"`. Do not proceed further.
 
 ---
 
@@ -218,7 +275,14 @@ Always wrap this in the standard tool contract envelope:
 
 ```json
 {
+  "decision": "use_cache | researched | skip",
   "vendorProfile": { ... },
+  "cache": {
+    "hit": true,
+    "key": "abn:<...> | domain:<...> | name:<...>",
+    "stale": false,
+    "scope": "run | global"
+  },
   "confidence": 0.0,
   "flagForReview": false,
   "flagReason": "string or omit"
@@ -231,6 +295,12 @@ For `skip` decisions, return:
 {
   "vendorProfile": null,
   "decision": "skip",
+  "cache": {
+    "hit": true,
+    "key": "name:<...>",
+    "stale": false,
+    "scope": "run | global"
+  },
   "confidence": 1.0,
   "flagForReview": false
 }
