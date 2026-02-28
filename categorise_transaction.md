@@ -37,7 +37,7 @@ This tool must be registered in the MCP server (implemented in **xero-mcp**) usi
       "required": ["id", "date", "amount", "currency", "contactName", "description"],
       "properties": {
         "id": { "type": "string", "minLength": 1, "description": "Internal transaction identifier." },
-        "date": { "type": "string", "minLength": 4, "description": "Transaction date (ISO 8601 preferred)." },
+        "date": { "type": "string", "format": "date", "description": "Transaction date (ISO 8601 preferred)." },
         "amount": { "type": "number", "description": "Signed amount in transaction currency (positive expense, negative credit/contra)." },
         "currency": { "type": "string", "minLength": 3, "maxLength": 3, "description": "ISO 4217 currency code, e.g. AUD." },
         "contactName": { "type": "string", "minLength": 1, "description": "Payee/vendor name." },
