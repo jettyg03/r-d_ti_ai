@@ -113,7 +113,7 @@ When refreshing, update the cached record in place (same key) and update its `la
 
 #### Negative caching (skip decisions)
 
-When the vendor is **unambiguously** a clearly non-R&D supplier (e.g. major bank, utility provider, office supplies retailer) and the tool returns `decision: "skip"` with confidence ≥ 0.9, store a negative cache entry keyed by `name:<normalisedVendorName>` with a **365 day** TTL. This avoids repeated checks for obvious non-eligible payees.
+When the vendor is **unambiguously** a clearly non-R&D supplier (e.g. major bank, utility provider, office supplies retailer) and the tool returns `decision: "skip"` with confidence ≥ 0.9, store a negative cache entry keyed by the most specific identifier available (ABN > domain > name) with a **365 day** TTL. This avoids repeated checks for obvious non-eligible payees.
 
 Do not negative-cache cases where the name is ambiguous or could plausibly refer to an R&D-relevant supplier.
 
