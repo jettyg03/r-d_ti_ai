@@ -52,7 +52,7 @@ Practical requirements while orchestrating:
 
 **Goal:** Extract a structured `ClientRDProfile` from the meeting transcript.
 
-**How:** Follow the `analyse_transcript` skill doc.
+**How:** Follow the `extract_client_rd_profile_from_transcript` skill doc.
 
 1. Call the `analyse_transcript` MCP tool to normalise the transcript to plain text
 2. Using the normalised text, extract the full `ClientRDProfile` per the skill instructions
