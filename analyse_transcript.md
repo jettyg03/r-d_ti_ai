@@ -127,7 +127,7 @@ Search for R&D norms and patterns specific to the client's industry (and sub-ind
 - `"[industry] typical R&D activities RDTI"`
 - `"AusIndustry R&D [sector] eligible activities"`
 
-Summarise findings in 2–4 sentences. If no useful results are found, set `industryContext` to `null` and add a note to `flagReason`.
+Summarise findings in 2–4 sentences. If no useful results are found, set `industryContext` to `null` and add "Industry context enrichment unavailable" to `flagReason`.
 
 #### 7b. Enrich `atoGuidanceNotes`
 
