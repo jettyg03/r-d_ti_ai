@@ -103,7 +103,7 @@ This tool must be registered in the MCP server (implemented in **xero-mcp**) usi
                       "type": "object",
                       "required": ["description"],
                       "properties": {
-                        "description": { "type": "string" },
+                        "description": { "type": "string", "minLength": 1 },
                         "quantity": { "type": "number" },
                         "unitAmount": { "type": "number" },
                         "lineAmount": { "type": "number" }
