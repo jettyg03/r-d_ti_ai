@@ -32,7 +32,9 @@ This tool must be registered in the MCP server (implemented in **xero-mcp**) usi
     },
     "abn": {
       "type": "string",
-      "description": "Optional ABN. The tool must strip non-digits and validate 11 digits."
+      "description": "Optional Australian Business Number (ABN). The tool must strip non-digit characters and validate that the result is exactly 11 digits.",
+      "minLength": 11,
+      "maxLength": 25
     },
     "website": {
       "type": "string",
