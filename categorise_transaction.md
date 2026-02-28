@@ -314,7 +314,7 @@ Return a single result wrapped in the standard tool output envelope.
 - `categorisedTransaction.reasoning`: must be bullet-point-ready lines (no long paragraphs).
 - If `category` is `eligible_rd` or `supporting_rd`, your reasoning must make the “direct linkage” explicit.
 - Always set top-level `confidence`, `flagForReview`, and optional `flagReason` per `docs/TOOL_CONTRACT.md`.
-- Include `reviewQueueItem` **only when** `flagForReview === true` (or when `category === "review_required"`). Omit it otherwise.
+- Include `reviewQueueItem` **only when** `flagForReview === true`. Omit it otherwise.
 - `reviewQueueItem.transaction` must be a **minimal snapshot** (no raw attachment text). Use `attachmentFileNames` only.
 - `reviewQueueItem.aiAssessment.reasoning` should reuse (or be consistent with) `categorisedTransaction.reasoning`.
 - `reviewQueueItem.question.prompt` must be a single, specific question that a human can answer in one step (avoid multi-part prompts). It should be framed to resolve the uncertainty in `flagReason`.
