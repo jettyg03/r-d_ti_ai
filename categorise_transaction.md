@@ -90,7 +90,7 @@ This tool must be registered in the MCP server (implemented in **xero-mcp**) usi
           }
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "clientProfile": {
       "type": "object",
