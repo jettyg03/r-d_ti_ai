@@ -17,7 +17,7 @@ Each case includes:
 
 ### RV-KNOWN-001 — known non-R&D supplier should be skipped
 
-**Input**
+#### Input
 
 ```json
 {
@@ -25,7 +25,7 @@ Each case includes:
 }
 ```
 
-**Expected**
+#### Expected
 
 - `decision === "skip"`
 - `vendorProfile === null`
@@ -36,7 +36,7 @@ Each case includes:
 
 ### RV-UNKNOWN-001 — unknown vendor with no public results should be flagged
 
-**Input**
+#### Input
 
 ```json
 {
@@ -44,7 +44,7 @@ Each case includes:
 }
 ```
 
-**Stubs**
+#### Stubs
 
 ```json
 {
@@ -53,7 +53,7 @@ Each case includes:
 }
 ```
 
-**Expected**
+#### Expected
 
 - `decision === "researched"`
 - `vendorProfile.vendorName === "acme quantum materials"` (normalised)
@@ -64,7 +64,7 @@ Each case includes:
 
 ### RV-AMBIGUOUS-001 — generic trading name with multiple plausible matches should be flagged
 
-**Input**
+#### Input
 
 ```json
 {
@@ -72,7 +72,7 @@ Each case includes:
 }
 ```
 
-**Stubs**
+#### Stubs
 
 ```json
 {
@@ -92,11 +92,10 @@ Each case includes:
 }
 ```
 
-**Expected**
+#### Expected
 
 - `decision === "researched"`
 - `flagForReview === true`
 - `confidence < 0.5`
 - `flagReason` mentions identity ambiguity / multiple plausible companies (wording may vary)
 - `vendorProfile.sources` includes at least 2 distinct domains
-
