@@ -12,6 +12,7 @@ Reference: `docs/XERO_API_DATA_USAGE_COMPLIANCE.md`.
 
 - **Product docs (external):** [Product/docs/randd-tax-ai](../../Product/docs/randd-tax-ai) — overview, architecture, components, user flows.
 - **Context & work units:** [Product/docs/randd-tax-ai/context](../../Product/docs/randd-tax-ai/context) — domain context, MCP contracts, and per-ticket work units (BEN-10 → BEN-39).
+- **AusIndustry portal spec (BEN-35):** [docs/AUSINDUSTRY_PORTAL_SPEC.md](AUSINDUSTRY_PORTAL_SPEC.md) — portal fields, character limits, compliance language for narrative/submission generator.
 
 ## Linear projects (source of truth)
 
