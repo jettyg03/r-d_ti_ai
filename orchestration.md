@@ -126,8 +126,7 @@ Use the **normalised vendor name** as the key for your Stage 3 `vendorProfiles` 
 ```json
 {
   "vendorName": "<contactName>",
-  "industry": "<ClientRDProfile.industry>",
-  "abn": "<optional — digits only; public identifier>",
+  "abn": "<optional — public identifier (ABN)>",
   "website": "<optional — official website URL; public identifier>"
 }
 ```
