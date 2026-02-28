@@ -76,7 +76,7 @@ This tool must be registered in the MCP server (implemented in **xero-mcp**) usi
         },
         "attachments": {
           "type": "array",
-          "description": "Optional attachment text extracted from invoices/receipts. This is not raw bytes; it is OCR/text extraction performed upstream.",
+          "description": "Optional attachment content extracted from invoices/receipts (e.g. via extract_receipt_invoice_content). This is not raw bytes; it is OCR/text extraction performed upstream.",
           "items": {
             "type": "object",
             "required": ["id", "fileName", "contentText"],
@@ -84,7 +84,38 @@ This tool must be registered in the MCP server (implemented in **xero-mcp**) usi
               "id": { "type": "string", "minLength": 1 },
               "fileName": { "type": "string", "minLength": 1 },
               "mimeType": { "type": "string" },
-              "contentText": { "type": "string", "minLength": 0, "description": "Extracted text (may be empty/partial)." }
+              "contentText": { "type": "string", "minLength": 0, "description": "Extracted text (may be empty/partial or truncated)." },
+              "extractionStatus": { "type": "string", "enum": ["extracted", "empty", "failed", "unsupported"] },
+              "extractedFields": {
+                "type": "object",
+                "description": "Optional minimal structured fields parsed from the document. When present, prefer these over free-text dumping.",
+                "properties": {
+                  "supplierName": { "type": "string" },
+                  "invoiceNumber": { "type": "string" },
+                  "documentDate": { "type": "string", "format": "date" },
+                  "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+                  "subtotal": { "type": "number" },
+                  "tax": { "type": "number" },
+                  "total": { "type": "number" },
+                  "lineItems": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["description"],
+                      "properties": {
+                        "description": { "type": "string" },
+                        "quantity": { "type": "number" },
+                        "unitAmount": { "type": "number" },
+                        "lineAmount": { "type": "number" }
+                      },
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "additionalProperties": false
+              },
+              "extractionConfidence": { "type": "number", "minimum": 0, "maximum": 1 },
+              "failureReason": { "type": "string" }
             },
             "additionalProperties": false
           }
@@ -169,7 +200,7 @@ Determine the most likely “purpose” of the spend using all available signals
 - **Transaction text**: `transaction.description`, plus `lineItems[].description` when present
 - **Vendor identity**: `vendorProfile.description`, `productsServices`, and `rdRelevance` when present
 - **Account signals**: `accountName`, `accountCode`, `taxType`, tracking categories
-- **Attachments**: scan `attachments[].contentText` for concrete items/services (e.g. “prototype machining”, “cloud compute”, “lab reagents”, “subscription renewal”, “office rent”)
+- **Attachments**: prefer `attachments[].extractedFields.lineItems[].description` / totals / document date when present; otherwise scan `attachments[].contentText` for concrete items/services (e.g. “prototype machining”, “cloud compute”, “lab reagents”, “subscription renewal”, “office rent”)
 
 If purpose is still unclear (e.g. generic description “services”, attachment text is empty), plan to return `review_required`.
 

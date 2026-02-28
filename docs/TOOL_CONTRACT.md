@@ -21,6 +21,7 @@ Skill-definition reference: all R&D Tax AI skill tools **implemented in xero-mcp
 |------|-------------|-------|
 | `analyse_transcript` | `{ text: string }` | Normalisation only — extraction done by CoWork skill (BEN-40) |
 | `ingest_xero_data` | Transaction[] | |
+| `extract_receipt_invoice_content` | ExtractedReceiptInvoiceContent | Extract + parse receipt/invoice attachment text for categorisation (BEN-30) |
 | `research_vendor` | VendorProfile | |
 | `categorise_transaction` | CategorisedTransaction | |
 | `calculate_financials` | FinancialSummary | |
