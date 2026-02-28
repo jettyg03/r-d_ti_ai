@@ -1,7 +1,7 @@
 ---
 name: analyse_transcript
 description: Extract a structured R&D client profile from a meeting transcript for use in an Australian RDTI claim
-version: 2.0.0
+version: 2.1.0
 output_type: ClientRDProfile
 tool: analyse_transcript
 ---
@@ -48,6 +48,7 @@ Use the returned `text` field for all extraction steps below. If the tool return
 Look for:
 - Company or business name
 - Industry or sector (e.g. software, biotech, advanced manufacturing, agtech)
+- Sub-industry or specialisation (e.g. "genomics" within biotech, "embedded systems" within software) — record if mentioned
 - Financial year being discussed (e.g. "FY2024", "2023–24")
 
 If the company name is not mentioned, leave it blank. If the financial year is ambiguous, note what was said.
@@ -65,6 +66,7 @@ For each distinct activity described, extract:
   - "no off-the-shelf solution..."
   - "we had to figure out..."
 - **Stage** — use one of: `research`, `experimental_development`, `testing`, `production`
+- **Type** — `core` (directly addresses a technical uncertainty) or `supporting` (directly enables a core activity)
 
 > **RDTI test:** A core R&D activity must involve genuine technical uncertainty and a hypothesis-driven experimental approach. If an activity sounds like routine development or IT maintenance rather than pushing into unknown territory, note that in a flag. Activities must be more than applying existing knowledge.
 
@@ -105,6 +107,52 @@ Always set `flagForReview: true` if:
 
 Include a `flagReason` explaining what is missing or uncertain.
 
+> **Note on web enrichment (Step 7):** If web research returns no useful results, note this in `flagReason` (e.g. "Industry enrichment unavailable — no ATO guidance found for this sector"). This does **not** lower the confidence score; confidence is determined solely by what was extracted from the transcript.
+
+---
+
+### 7. Web research enrichment
+
+After completing extraction (Steps 1–6), use web search to enrich two fields in the profile: `industryContext` and `atoGuidanceNotes`. This enrichment gives the downstream categorisation skill the industry-specific context it needs to make better eligibility decisions.
+
+#### 7a. Enrich `industryContext`
+
+Search for R&D norms and patterns specific to the client's industry (and sub-industry where identified). Aim to answer:
+- What kinds of R&D activities are typical in this sector?
+- What technical uncertainties do companies in this space commonly pursue?
+- What does "experimental development" look like in this industry?
+
+**Suggested search queries** (adapt using the identified `industry` / `subIndustry`):
+- `"R&D Tax Incentive [industry] examples Australia"`
+- `"[industry] typical R&D activities RDTI"`
+- `"AusIndustry R&D [sector] eligible activities"`
+
+Summarise findings in 2–4 sentences. If no useful results are found, set `industryContext` to `null` and add "Industry context enrichment unavailable" to `flagReason`.
+
+#### 7b. Enrich `atoGuidanceNotes`
+
+Search for ATO rulings, ATO IDs, or AusIndustry guidance documents that apply specifically to R&D in the client's sector. TR 2019/1 applies to all claims — only cite it here if it contains sector-specific passages. Look for:
+- ATO ID rulings mentioning the client's industry or activity type
+- AusIndustry sector-specific guidance sheets
+- Any public ATO statements about eligibility in this field
+
+**Suggested search queries**:
+- `"ATO R&D Tax Incentive [industry] ruling"`
+- `"ATO ID [industry] R&D eligible"`
+- `"AusIndustry RDTI [sector] guidance"`
+- `site:ato.gov.au R&D "[industry]"`
+
+Summarise any relevant guidance in 2–4 sentences with ruling/document references where found. If nothing sector-specific is found, state: `"No sector-specific ATO guidance identified. TR 2019/1 applies."`.
+
+#### 7c. Optional: client-specific enrichment
+
+If a `clientName` is known and the company appears publicly available (e.g. has a website, ASX listing, or news coverage), you may optionally search for publicly known information about their R&D activities. This can corroborate or add context to what was discussed in the transcript.
+
+> **Enrichment principles:**
+> - **Do not overwrite transcript-derived facts.** If the transcript states the client works in "genomic sequencing", do not replace this with a broader category found via web search.
+> - Enrichment supplements extraction — it adds context the transcript didn't mention.
+> - If the client is clearly identifiable but no useful public information is found, note this briefly; do not fabricate.
+
 ---
 
 ## Input formats
@@ -127,12 +175,14 @@ Return your findings as a `ClientRDProfile` JSON object:
 {
   "clientName": "string or omit",
   "industry": "string — e.g. 'Software & Technology'",
+  "subIndustry": "string or omit — e.g. 'Embedded Systems'",
   "rdActivities": [
     {
       "title": "string",
       "description": "string",
       "technicalChallenge": "string or omit",
-      "stage": "research | experimental_development | testing | production"
+      "stage": "research | experimental_development | testing | production",
+      "type": "core | supporting"
     }
   ],
   "technologies": ["string"],
@@ -147,6 +197,8 @@ Return your findings as a `ClientRDProfile` JSON object:
     }
   ],
   "claimYear": "string or omit — e.g. 'FY2024'",
+  "industryContext": "string or null — R&D norms for this sector, enriched via web research (Step 7a)",
+  "atoGuidanceNotes": "string — ATO/AusIndustry guidance relevant to this sector (Step 7b)",
   "extractedAt": "ISO 8601 timestamp"
 }
 ```
