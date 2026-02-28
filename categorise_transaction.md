@@ -121,7 +121,7 @@ This tool must be registered in the MCP server (implemented in **xero-mcp**) usi
         "industryContext": { "type": ["string", "null"] },
         "atoGuidanceNotes": { "type": "string" }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "vendorProfile": {
       "type": ["object", "null"],
