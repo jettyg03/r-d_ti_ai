@@ -1,57 +1,83 @@
 ---
 name: research_vendor
-description: Determine whether a vendor requires active research and, if so, build a structured VendorProfile describing their business and R&D relevance for an Australian RDTI claim
+description: Research a vendor (by name, optional ABN, optional website) and return a structured VendorProfile describing their business and R&D relevance for an Australian RDTI claim
 version: 1.1.0
 output_type: VendorProfile
 tool: research_vendor
 ---
 
-# Skill: Research Vendor
+# Tool: research_vendor (vendor research)
 
 You are an R&D tax specialist preparing Australian Research and Development Tax Incentive (RDTI) claims. When asked to assess an unknown or ambiguous vendor, follow these instructions carefully to decide whether research is needed and, if so, to produce a structured `VendorProfile`.
 
 ---
 
+## Tool contract (registration)
+
+This tool must be registered in the MCP server (implemented in **xero-mcp**) using the tool contract in `docs/TOOL_CONTRACT.md`:
+
+- `name`: `research_vendor`
+- `description`: research a vendor using public identifiers and return a `VendorProfile`
+- `inputSchema` (JSON Schema):
+
+```json
+{
+  "type": "object",
+  "required": ["vendorName"],
+  "properties": {
+    "vendorName": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Vendor/payee name as provided by the caller (e.g. Xero contact name)."
+    },
+    "abn": {
+      "type": "string",
+      "description": "Optional Australian Business Number (ABN). The tool must strip non-digit characters and validate that the result is exactly 11 digits.",
+      "minLength": 11,
+      "maxLength": 25
+    },
+    "website": {
+      "type": "string",
+      "format": "uri",
+      "description": "Optional official vendor website URL."
+    }
+  },
+  "additionalProperties": false
+}
+```
+
+---
+
 ## When to use this skill
 
-Use this skill when the orchestrator encounters a payee in Xero transaction data whose R&D relevance is not already established. The skill has two jobs:
+Use this tool when the orchestrator (or another skill) encounters a payee whose business activity and R&D relevance are not already established. The tool takes **only public identifiers**:
 
-1. **Ambiguity detection** — decide whether active research is required, or whether the vendor can be resolved from cache or skipped as obviously non-eligible.
-2. **Profile construction** — if research is required, gather information and populate a `VendorProfile`.
+1. **Cache/skip short-circuiting** — return a cached `VendorProfile` if fresh, or skip clearly non-R&D suppliers.
+2. **Vendor profiling** — when not cached/skipped, perform public web research and return a structured `VendorProfile`.
 
 > This document covers the ambiguity detection logic (job 1) in full and provides a skeleton for profile construction (job 2). The web-search implementation details for job 2 will be completed in BEN-21.
 
 ---
 
-## Ambiguity detection criteria
+## Cache/skip short-circuit criteria
 
-Flag a vendor for research (`needs_research`) when **any** of the following conditions is true:
+Return `decision: "use_cache"` when:
 
-| # | Criterion | Detail |
-|---|-----------|--------|
-| 1 | **Unknown vendor name** | The normalised payee name does not appear in the vendor cache or the known-supplier list. |
-| 2 | **Vague transaction description** | The Xero transaction narration/reference contains only generic terms — e.g. "consulting", "services", "materials", "fees", "invoice" — or is blank. |
-| 3 | **No prior categorisation history** | No previously categorised transaction exists for this payee in the current client run or cross-client history. |
-| 4 | **Name does not obviously map to a known category** | The payee name gives no clear signal about the type of goods or services supplied (e.g. "Henderson Consulting", "Sigma Technologies Pty Ltd", "Blue River Holdings"). |
+- A **fresh** cached `VendorProfile` exists for the most specific identity key available (ABN > domain > name).
 
-**Skip** the vendor (no research needed) when **either** of the following is true:
+Return `decision: "skip"` when:
 
-- A cached `VendorProfile` already exists for the normalised vendor name — return it directly (see Step 0).
-- The payee name unambiguously identifies a clearly non-R&D supplier — e.g. a utility provider, major bank, or obvious retail/admin supplier (e.g. "AGL Energy", "Commonwealth Bank", "Officeworks").
+- The vendor name unambiguously identifies a clearly non-R&D supplier (e.g. major bank, utility provider, office supplies retailer).
 
 ---
 
-## Ambiguity decision table
+## Decision table
 
-| Cached? | Description vague? | Name maps to known category? | Prior categorisation? | Decision |
-|---------|--------------------|------------------------------|-----------------------|----------|
-| Yes | — | — | — | `use_cache` — return cached `VendorProfile`. Stop. |
-| No | No | Yes (clearly non-R&D) | — | `skip` — vendor is obviously ineligible; no profile needed. |
-| No | No | Yes (non-ambiguous, R&D-possible) | Yes | `use_cache` — reuse prior categorisation context; no new web search. |
-| No | No | Yes (non-ambiguous, R&D-possible) | No | `needs_research` — name is R&D-possible but no history; research to establish profile. |
-| No | Yes | Any | Any | `needs_research` — proceed to Steps 1–4. |
-| No | No | No | No | `needs_research` — name is ambiguous; proceed to Steps 1–4. |
-| No | No | No | Yes | `needs_research` — prior categorisation exists but name is still ambiguous; research to confirm. |
+| Fresh cache hit? | Clearly non-R&D supplier? | Decision |
+|-----------------|--------------------------|----------|
+| Yes | — | `use_cache` — return cached `VendorProfile`. Stop. |
+| No | Yes | `skip` — vendor is obviously non-R&D; no profile needed. |
+| No | No | Proceed to Step 2 and return `decision: "researched"`. |
 
 ---
 
@@ -127,19 +153,16 @@ If a **fresh** cached `VendorProfile` exists (per lookup + staleness rules), ret
 
 ---
 
-## Step 1: Apply ambiguity detection
+## Step 1: Apply cache/skip decision
 
-Run the 4-criteria check against:
+Apply the decision table using only:
 
-- The normalised payee name
-- The Xero transaction description/narration
-- The client's prior categorisation history
-- The known-supplier list (if configured)
+- The normalised `vendorName`
+- Any provided `abn` and/or `website`
+- The vendor research cache (Step 0)
+- A small internal "clearly non-R&D supplier" list/patterns (banks, utilities, office supplies, etc.)
 
-Determine the decision outcome using the decision table above.
-
-- `use_cache` or `skip` → stop and return the appropriate result.
-- `needs_research` → continue to Step 2.
+If the outcome is `use_cache` or `skip`, stop and return the appropriate result. Otherwise continue to Step 2.
 
 ---
 
