@@ -265,31 +265,70 @@ Set `flagForReview: true` (and include a concrete `flagReason`) if any apply:
 
 - `category === "review_required"`
 - `confidence < 0.65`
+- Vendor relevance is ambiguous for this transaction (see below)
 - Attachments/line items contradict the transaction description (or each other)
 - The spend looks mixed-use (part R&D, part BAU/admin) with no allocation basis provided
 - The vendor identity is missing/uncertain and the transaction text is generic
+
+### Vendor relevance ambiguity (must trigger human review)
+
+Flag the transaction for human review due to ambiguous vendor relevance when **both** are true:
+
+1. The vendor context is not reliable:
+   - `vendorProfile` is `null`, **or**
+   - `vendorProfile.flagForReview === true`, **or**
+   - `vendorProfile.confidence < 0.7`
+2. The transaction itself does not disambiguate the purchase purpose:
+   - `transaction.description` and `lineItems[]` are generic (e.g. "services", "subscription"), **and**
+   - attachments (if present) do not clearly name the item/service or its R&D linkage.
+
+In this case, return `category: "review_required"`, set `flagForReview: true`, and set `flagReason` to a concrete sentence describing what is missing (e.g. "Vendor research confidence < 0.7 and transaction text is generic; cannot determine R&D linkage without human context.").
 
 ---
 
 ## Output
 
-Return a single `CategorisedTransaction` object wrapped in the standard tool output envelope:
+Return a single result wrapped in the standard tool output envelope.
 
 ```json
 {
-  "transactionId": "string",
-  "category": "eligible_rd | supporting_rd | non_eligible | review_required",
-  "linkedActivities": [
-    {
-      "title": "string",
-      "type": "core | supporting",
-      "matchReason": "string"
+  "categorisedTransaction": {
+    "transactionId": "string",
+    "category": "eligible_rd | supporting_rd | non_eligible | review_required",
+    "linkedActivities": [
+      {
+        "title": "string",
+        "type": "core | supporting",
+        "matchReason": "string"
+      }
+    ],
+    "reasoning": ["string", "string"]
+  },
+  "reviewQueueItem": {
+    "transactionId": "string",
+    "transaction": {
+      "date": "YYYY-MM-DD",
+      "amount": 0.0,
+      "currency": "AUD",
+      "contactName": "string",
+      "description": "string",
+      "accountName": "string or omit",
+      "attachmentFileNames": ["string"]
+    },
+    "aiAssessment": {
+      "proposedCategory": "eligible_rd | supporting_rd | non_eligible | review_required",
+      "linkedActivities": ["string"],
+      "reasoning": ["string"],
+      "confidence": 0.0,
+      "flagReason": "string"
+    },
+    "question": {
+      "questionType": "purpose | rd_linkage | allocation | contradiction | vendor_identity",
+      "prompt": "string",
+      "answerFormat": "free_text | choose_one | choose_many | percentage_split",
+      "options": ["string or omit"]
     }
-  ],
-  "reasoning": [
-    "string",
-    "string"
-  ],
+  },
   "confidence": 0.0,
   "flagForReview": false,
   "flagReason": "string or omit"
@@ -298,9 +337,14 @@ Return a single `CategorisedTransaction` object wrapped in the standard tool out
 
 ### Output field notes
 
-- `linkedActivities`: include 0–2 items. If none, return an empty array.
-- `reasoning`: must be bullet-point-ready lines (no long paragraphs).
+- `categorisedTransaction.linkedActivities`: include 0–2 items. If none, return an empty array.
+- `categorisedTransaction.reasoning`: must be bullet-point-ready lines (no long paragraphs).
 - If `category` is `eligible_rd` or `supporting_rd`, your reasoning must make the “direct linkage” explicit.
+- Always set top-level `confidence`, `flagForReview`, and optional `flagReason` per `docs/TOOL_CONTRACT.md`.
+- Include `reviewQueueItem` **only when** `flagForReview === true`. Omit it otherwise.
+- `reviewQueueItem.transaction` must be a **minimal snapshot** (no raw attachment text). Use `attachmentFileNames` only.
+- `reviewQueueItem.aiAssessment.reasoning` should reuse (or be consistent with) `categorisedTransaction.reasoning`.
+- `reviewQueueItem.question.prompt` must be a single, specific question that a human can answer in one step (avoid multi-part prompts). It should be framed to resolve the uncertainty in `flagReason`.
 
 ---
 

@@ -193,7 +193,10 @@ Categories:
 | `non_eligible` | Routine, sales, admin, or excluded expenditure |
 | `review_required` | Ambiguous — needs human judgement |
 
-**What to carry forward:** The full `CategorisedTransaction[]`.
+**What to carry forward:**
+
+- `categorisationResults[]`: the full per-transaction tool outputs (including `confidence`, `flagForReview`, optional `flagReason`, and optional `reviewQueueItem`).
+- `categorisedTransactions[]`: derived by extracting `categorisedTransaction` from each result (this is what Stage 5 consumes).
 
 **Checkpoint CP4 (conditional):**
 
@@ -206,10 +209,58 @@ Only pause if **any** of the following are true:
 If pausing, present:
 
 - A summary table: count per category with total AUD spend
-- All `review_required` transactions with their rationale
-- Any other flagged items
+- A **review queue** built from each flagged transaction’s `reviewQueueItem` (or constructed from the tool output if missing)
 
-Ask the user to assign a category to each `review_required` item. Update those transactions before advancing.
+### Review queue item format (CP4)
+
+For each flagged transaction, present (and store) a `HumanReviewQueueItem` with the minimum information needed for judgement:
+
+```json
+{
+  "transactionId": "string",
+  "transaction": {
+    "date": "YYYY-MM-DD",
+    "amount": 0.0,
+    "currency": "AUD",
+    "contactName": "string",
+    "description": "string",
+    "accountName": "string or omit",
+    "attachmentFileNames": ["string"]
+  },
+  "aiAssessment": {
+    "proposedCategory": "eligible_rd | supporting_rd | non_eligible | review_required",
+    "linkedActivities": ["string"],
+    "reasoning": ["string"],
+    "confidence": 0.0,
+    "flagReason": "string"
+  },
+  "question": {
+    "questionType": "purpose | rd_linkage | allocation | contradiction | vendor_identity",
+    "prompt": "string",
+    "answerFormat": "free_text | choose_one | choose_many | percentage_split",
+    "options": ["string or omit"]
+  }
+}
+```
+
+**Data minimisation reminder:** do not include raw Xero payloads or attachment text; keep to IDs and minimal fields required for review.
+
+### What to ask the human (CP4)
+
+For each item, ask the **single** question provided in `reviewQueueItem.question.prompt`. If the tool did not provide a question, ask one of:
+
+- *"What was this spend for (in plain English), and does it relate to any of the listed R&D activities?"*
+- *"Which R&D activity (if any) should this be linked to?"*
+- *"Is this spend mixed-use (R&D vs BAU/admin)? If yes, what percentage should be allocated to R&D?"*
+
+### Applying human answers (CP4)
+
+After the user responds, resolve each queue item by updating pipeline state:
+
+- **Category override**: update the corresponding `categorisedTransaction.category` (and keep/update `linkedActivities` as needed).
+- **Allocation** (if the user gives a percentage split): create two derived categorised entries for Stage 5 using the same transaction metadata but split amounts and categories according to the human-provided allocation. Keep the original transaction ID in a `sourceTransactionId` note in your own working memory (do not invent new Xero IDs).
+- **Clear the flag**: set the item’s `flagForReview` to `false` and remove `flagReason` once the uncertainty is resolved.
+- **Audit trail in reasoning**: append one short bullet to `categorisedTransaction.reasoning` noting the human decision (no sensitive details).
 
 If all transactions are cleanly categorised (no `review_required`, no flags, confidence ≥ 0.7), advance automatically.
 
