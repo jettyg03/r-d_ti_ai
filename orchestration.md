@@ -204,7 +204,7 @@ For each flagged transaction, present (and store) a `HumanReviewQueueItem` with 
     "description": "string",
     "accountName": "string or omit",
     "attachmentFileNames": ["string"]
-  }
+  },
   "aiAssessment": {
     "proposedCategory": "eligible_rd | supporting_rd | non_eligible | review_required",
     "linkedActivities": ["string"],
@@ -213,6 +213,7 @@ For each flagged transaction, present (and store) a `HumanReviewQueueItem` with 
     "flagReason": "string"
   },
   "question": {
+    "questionType": "purpose | rd_linkage | allocation | contradiction | vendor_identity",
     "prompt": "string",
     "answerFormat": "free_text | choose_one | choose_many | percentage_split",
     "options": ["string or omit"]

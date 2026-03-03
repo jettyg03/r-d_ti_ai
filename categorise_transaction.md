@@ -274,18 +274,14 @@ Return a single result wrapped in the standard tool output envelope.
     "reasoning": ["string", "string"]
   },
   "reviewQueueItem": {
+    "transactionId": "string",
     "transaction": {
-      "id": "string",
       "date": "YYYY-MM-DD",
       "amount": 0.0,
       "currency": "AUD",
       "contactName": "string",
       "description": "string",
-      "accountCode": "string or omit",
       "accountName": "string or omit",
-      "taxType": "string or omit",
-      "tracking": [{ "name": "string", "option": "string" }],
-      "lineItems": [{ "description": "string", "lineAmount": 0.0 }],
       "attachmentFileNames": ["string"]
     },
     "aiAssessment": {
